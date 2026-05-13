@@ -1,0 +1,26 @@
+TECHNOLOGY STACK – DORMITORY MANAGEMENT SYSTEM
+BACKEND (Java)
+Framework: Spring Boot 3.3.0
+Java: 17
+Build Tool: Apache Maven 3.9.14
+Dependencies:
+    spring-boot-starter-web → Xây dựng RESTful API
+    spring-boot-starter-data-jpa → ORM
+    spring-boot-starter-validation → Validate dữ liệu
+    PostgreSQL Driver → Kết nối DB
+    lombok → Giảm boilerplate code
+=========================================================
+DATABASE
+Hệ quản trị: PostgreSQL
+Version: 17.9
+Vai trò:
+Lưu trữ dữ liệu hệ thống (Sinh viên, Phòng, Đơn đăng ký…)
+Hỗ trợ truy vấn, ràng buộc dữ liệu
+=========================================================
+FRONTEND
+Core: React 18.3.1
+Build Tool: Vite 5.x
+Libraries:
+    Material UI 6.0.0
+    Axios 1.6.0
+    React Router 6.26.0
