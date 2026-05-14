@@ -7,24 +7,36 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "user_account") // Đặt tên bảng trong cơ sở dữ liệu là "user_account"
-@Getter @Setter
+@Table(name = "user_accounts")
+@Getter
+@Setter
 public class UserAccount extends BaseEntity {
 
-    @Column(unique = true, nullable = false)
-    private String username; // Tên đăng nhập, duy nhất và không được để trống (CCCD)
-
-    private String password; // Mật khẩu đã được mã hóa (hashed)
+    @Column(nullable = false, unique = true)
+    private String username;
 
     @Column(nullable = false)
-    private Boolean isActive = true; // Trạng thái tài khoản (kích hoạt hay không)
+    private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // Vai trò của người dùng (USER, STAFF, ADMIN)
+    @Column(nullable = false)
+    private Role role;
+
+    @Column(columnDefinition = "TEXT")
+    private String refreshToken;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
+
+    private LocalDateTime lastLogin;
 
     @OneToOne
-    @JoinColumn(name = "student_id", nullable = true)
-    private Student student; // Liên kết với thực thể Student (nếu có)
-
+    @JoinColumn(name = "student_id")
+    private Student student;
 }

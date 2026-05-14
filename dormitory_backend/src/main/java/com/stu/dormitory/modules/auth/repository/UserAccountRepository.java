@@ -7,10 +7,12 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserAccountRepository extends JpaRepository<UserAccount, Long> {
-    // Tìm kiếm tài khoản người dùng theo tên đăng nhập
-   Optional<UserAccount> findByUsername(String username);
+public interface UserAccountRepository extends JpaRepository<UserAccount,Long> {
 
-   Optional<UserAccount> findByStudentId(Long studentId);
+    Optional<UserAccount> findByUsername(String username);
 
+    Optional<UserAccount>
+    findByStudent_Email(
+            String email
+    );
 }

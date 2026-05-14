@@ -13,19 +13,29 @@ import java.time.LocalDate;
  * Được tạo tự động khi sinh viên đăng ký ứng dụng
  */
 @Entity
-@Table(name = "student")
-@Getter @Setter
+@Table(name = "students")
+@Getter
+@Setter
 public class Student extends BaseEntity {
 
-    private String studentCode;  // Mã sinh viên
-    private String fullName;     // Họ tên đầy đủ
+    @Column(unique = true)
+    private String studentCode;
+
+    private String fullName;
 
     @Column(unique = true, nullable = false)
-    private String cccd;         // Căn cước công dân (ID duy nhất)
+    private String cccd;
 
-    private LocalDate dateOfBirth;  // Ngày sinh
-    private String gender;          // Giới tính
-    private String phone;           // Số điện thoại
-    private String email;           // Email
+    private LocalDate dateOfBirth;
 
+    private String gender;
+
+    private String phone;
+
+    @Column(unique = true)
+    private String email;
+
+    private String faculty;
+
+    private String course;
 }
