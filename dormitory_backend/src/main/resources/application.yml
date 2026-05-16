@@ -1,0 +1,48 @@
+spring:
+
+  # DATABASE
+  datasource:
+    url: jdbc:postgresql://localhost:5434/dormitory_db
+    username: postgres
+    password: 19052004
+    driver-class-name: org.postgresql.Driver
+
+  # JPA / HIBERNATE
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    show-sql: true
+
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# BREVO API
+brevo:
+  api-key: ${BREVO_API_KEY}
+
+  sender-email: quoctinhstudy1911@gmail.com
+
+  sender-name: Dormitory System
+
+# JWT
+jwt:
+  access-secret: "z8Xp2wR5vA9nL4kQ7jH1mS4tC6fG9hJ2kL5mR7QjW1xY4tA6sD9fG0hJ2kL5mR7Q"
+
+  refresh-secret: "b3V8M1qP9nL5mR7QjW1xY4tA6sD9fG0hJ2kL5mR7QjW1xY4tA6sD9fG0hJ2kL5m"
+
+  access-expiration: 900000
+
+  refresh-expiration: 604800000
+
+# SERVER
+server:
+  port: 8080
+
+# LOGGING
+logging:
+  level:
+    com.stu.dormitory: DEBUG
+    org.hibernate.SQL: DEBUG

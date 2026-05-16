@@ -1,0 +1,15 @@
+- Về bài làm hiện tại sẽ là
++ Sử dụng reactjs + Material UI(@mui/material@5)
++ Sử dụng postgreSQL
++ String boot nhen Bốt
+
+- Về cách làm bài sẽ theo dạng là làm từng module
++ Bắt đầu với đăng ký nhen
+    Chuẩn bị nghiệp vụ nhen Bốt
+    Thực hiện tạo công việc trên github theo mô hình scrum
+    Thực hiện code
+    Up lên github có cấu hình CI/CD
+    Chọn host
+    Hoàn thành 1 module
+
+- Chọn các phiên bản của những gì mình làm nhen Bốt
