@@ -13,3 +13,4 @@
     Hoàn thành 1 module
 
 - Chọn các phiên bản của những gì mình làm nhen Bốt
+- Flyway migration

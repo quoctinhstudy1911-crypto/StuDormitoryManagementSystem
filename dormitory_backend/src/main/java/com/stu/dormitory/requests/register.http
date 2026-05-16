@@ -1,0 +1,85 @@
+### TEST CHECK ELIGIBILITY API
+POST http://localhost:8080/api/applications/check-eligibility
+Content-Type: application/json
+
+{
+  "cccd": "000000000000"
+}
+
+### TEST CREATE APPLICATION
+POST http://localhost:8080/api/applications
+Content-Type: application/json
+
+{
+  "cccd": "012345678999",
+  "fullName": "Nguyễn Quốc Tịnh",
+  "email": "a@gmail.com",
+  "phone": "0988888888",
+  "studentCode": null,
+  "note": "Need quiet room",
+  "registrationType": "NEW"
+}
+
+### TEST DOCUMENT UPLOAD
+POST http://localhost:8080/api/applications/upload-document
+Content-Type: application/json
+
+{
+  "applicationCode": "APP-B5348017",
+  "documentType": "CCCD",
+  "fileUrl": "https://cloudinary.com/cccd.jpg"
+}
+
+### GET PENDING LIST
+GET http://localhost:8080/api/admin/applications/pending
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3ODgzMDM0MywiZXhwIjoxNzc4ODMxMjQzfQ.S2JtPDdg5ObKCKM3Yjq69njpz3ZbDexfb5E5c9Kzv30
+
+### GET ONE APPLICATION IN LIST
+GET http://localhost:8080/api/admin/applications/APP-17A62004
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3ODgzMDM0MywiZXhwIjoxNzc4ODMxMjQzfQ.S2JtPDdg5ObKCKM3Yjq69njpz3ZbDexfb5E5c9Kzv30
+
+
+### APPROVE
+POST http://localhost:8080/api/admin/applications/APP-7F69AA0D/review
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3ODgzMTc1OCwiZXhwIjoxNzc4ODMyNjU4fQ.ygQH-Hyo4_6c2TSaod91Qw-xVmqJxlNjU53ZqdImDLo
+
+{
+  "action": "APPROVE",
+  "note": "Hồ sơ hợp lệ"
+}
+
+### REQUEST_SUPPLEMENT
+POST http://localhost:8080/api/admin/applications/APP-XXXXXXXX/review
+Content-Type: application/json
+Authorization: Bearer ADMIN_ACCESS_TOKEN
+
+{
+  "action": "REQUEST_SUPPLEMENT",
+  "note": "Thiếu ảnh CCCD, vui lòng bổ sung trong 3 ngày"
+}
+
+### REJECT
+POST http://localhost:8080/api/admin/applications/APP-XXXXXXXX/review
+Content-Type: application/json
+Authorization: Bearer ADMIN_ACCESS_TOKEN
+
+{
+  "action": "REJECT",
+  "note": "Không đạt điều kiện lưu trú"
+}
+
+### SAVE PRIORITYDOCUMENT
+POST http://localhost:8080/api/applications/priority-documents
+Content-Type: application/json
+
+{
+  "applicationCode": "APP-7F69AA0D",
+  "documentType": "POVERTY_CERTIFICATE",
+  "fileUrl": "https://res.cloudinary.com/..."
+}
+
+### GET LIST PRIORITYDOCUMENT
+
+GET http://localhost:8080/api/admin/applications/APP-7F69AA0D/priority-documents
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3ODg5NTg1NywiZXhwIjoxNzc4ODk2NzU3fQ.JVUhfEl6OrXxvBpNpI9U1GyyGPaJ9co272Eq1WrZ17o

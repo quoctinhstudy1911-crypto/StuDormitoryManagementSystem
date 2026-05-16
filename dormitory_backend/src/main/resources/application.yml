@@ -37,6 +37,12 @@ jwt:
 
   refresh-expiration: 604800000
 
+# cloudinary
+cloudinary:
+  cloud-name: dpds3gjbj
+  api-key: 261367755435666
+  api-secret: KusiaJcJfXcevGQe0w45_E6UKxk
+
 # SERVER
 server:
   port: 8080

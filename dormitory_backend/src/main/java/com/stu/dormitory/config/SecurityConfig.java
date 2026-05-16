@@ -75,7 +75,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/refresh-token",
-                                "/api/auth/forgot-password"
+                                "/api/auth/forgot-password",
+                                "/api/applications/**"
                         ).permitAll()
 
                         // OTHER APIs REQUIRE LOGIN
