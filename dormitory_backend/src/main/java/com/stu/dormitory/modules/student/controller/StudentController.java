@@ -56,6 +56,6 @@ public class StudentController {
         return new ApiResponse<>(true, "Avatar updated successfully", avatarUrl);
     }
 
- 
+
 }
 
