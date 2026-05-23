@@ -1,0 +1,201 @@
+### 1. ADMIN LOGIN
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+> {% client.global.set("admin_token", response.body.data.accessToken); %}
+
+### 2. STUDENT LOGIN (CCCD 060204002557)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "060204002557",
+  "password": "123456"
+}
+
+> {% client.global.set("student_token", response.body.data.accessToken); %}
+
+### 3. CHECK ELIGIBILITY
+POST http://localhost:8080/api/applications/check-eligibility
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "cccd": "060204002557"
+}
+
+### 4. CREATE APPLICATION (có priority)
+POST http://localhost:8080/api/applications
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "cccd": "060204002557",
+  "fullName": "Nguyễn Quốc Tịnh",
+  "gender": "MALE",
+  "email": "quoctinh@example.com",
+  "phone": "0819281512",
+  "studentCode": "DH52201580",
+  "note": "Test",
+  "registrationType": "NEW",
+  "priorityCategories": ["POOR_HOUSEHOLD", "ORPHAN"]
+}
+
+> {% client.global.set("appCode", response.body.data.applicationCode); %}
+
+### 5. UPLOAD NORMAL DOCUMENTS (3 loại)
+# CCCD
+POST http://localhost:8080/api/applications/upload-document
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "applicationCode": "{{appCode}}",
+  "documentType": "CCCD",
+  "fileUrl": "https://cloudinary.com/cccd.jpg"
+}
+
+> {% client.global.set("cccdDocId", response.body.data.id); %}
+###
+# PORTRAIT_PHOTO
+POST http://localhost:8080/api/applications/upload-document
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "applicationCode": "{{appCode}}",
+  "documentType": "PORTRAIT_PHOTO",
+  "fileUrl": "https://cloudinary.com/portrait.jpg"
+}
+
+> {% client.global.set("photoDocId", response.body.data.id); %}
+###
+# COMMITMENT (cam kết)
+POST http://localhost:8080/api/applications/upload-document
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "applicationCode": "{{appCode}}",
+  "documentType": "COMMITMENT",
+  "fileUrl": "https://cloudinary.com/commitment.pdf"
+}
+
+> {% client.global.set("commitDocId", response.body.data.id); %}
+
+### 6. UPLOAD PRIORITY DOCUMENTS (cho từng priority)
+# POOR_HOUSEHOLD
+POST http://localhost:8080/api/applications/priority-documents
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "applicationCode": "{{appCode}}",
+  "documentType": "POVERTY_CERTIFICATE",
+  "fileUrl": "https://cloudinary.com/poverty.pdf"
+}
+
+> {% client.global.set("povertyDocId", response.body.data.id); %}
+###
+# ORPHAN
+POST http://localhost:8080/api/applications/priority-documents
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "applicationCode": "{{appCode}}",
+  "documentType": "ORPHAN_CERTIFICATE",
+  "fileUrl": "https://cloudinary.com/orphan.pdf"
+}
+
+> {% client.global.set("orphanDocId", response.body.data.id); %}
+
+### 7. ADMIN VERIFY NORMAL DOCUMENTS
+# CCCD
+POST http://localhost:8080/api/admin/applications/documents/{{cccdDocId}}/verify
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "status": "VALID",
+  "note": "OK"
+}
+###
+# PHOTO
+POST http://localhost:8080/api/admin/applications/documents/{{photoDocId}}/verify
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "status": "VALID",
+  "note": "OK"
+}
+###
+# COMMITMENT
+POST http://localhost:8080/api/admin/applications/documents/{{commitDocId}}/verify
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "status": "VALID",
+  "note": "OK"
+}
+
+### 8. ADMIN VERIFY PRIORITY DOCUMENTS
+# Poverty
+POST http://localhost:8080/api/admin/applications/priority-documents/{{povertyDocId}}/verify
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "status": "VALID",
+  "note": "OK"
+}
+###
+# Orphan
+POST http://localhost:8080/api/admin/applications/priority-documents/{{orphanDocId}}/verify
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "status": "VALID",
+  "note": "OK"
+}
+
+### 9. ADMIN APPROVE APPLICATION
+POST http://localhost:8080/api/admin/applications/{{appCode}}/review
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "action": "APPROVE",
+  "note": "Duyệt"
+}
+
+### 10. GET BILL ID (có thể lấy từ database hoặc từ API detail)
+# Lấy thông tin hồ sơ để xem bill (cần thêm endpoint lấy bill, tạm thời dùng SQL)
+# Hoặc dùng API /api/admin/applications/{{appCode}} để xem paymentDeadline, nhưng billId chưa có.
+# Giả sử bạn biết billId từ log hoặc DB, thay vào dưới.
+# Ở đây tôi giả định billId = 1 sau khi tạo.
+# Nếu chưa có bill, test sẽ fail.
+
+### 11. STUDENT PAY ONLINE (cần billId thực tế)
+# Thay billId bằng giá trị thực
+POST http://localhost:8080/api/payments/online
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{
+  "billId": 1,
+  "amount": 500000,
+  "paymentMethod": "BANK_TRANSFER",
+  "transactionCode": "TEST-TXN-001"
+}
+
+### 12. KIỂM TRA ASSIGNMENT, BED STATUS (sau thanh toán)
+# Có thể dùng SQL hoặc API riêng để kiểm tra

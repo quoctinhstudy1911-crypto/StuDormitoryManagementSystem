@@ -12,9 +12,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+/**
+ * Dịch vụ xử lý JWT (JSON Web Token):
+ * - Tạo access token và refresh token
+ * - Trích xuất username từ token
+ * - Xác thực tính hợp lệ của token
+ *
+ * @author Dormitory Team
+ */
 @Service
 @RequiredArgsConstructor
 public class JwtService {
@@ -22,169 +31,115 @@ public class JwtService {
     private final JwtConfig jwtConfig;
 
     // ==============================
-    // GENERATE ACCESS TOKEN
+    // TẠO ACCESS TOKEN (ngắn hạn)
     // ==============================
 
     public String generateAccessToken(UserAccount account) {
-
         return Jwts.builder()
-
                 .setSubject(account.getUsername())
-
                 .claim("role", account.getRole().name())
-
                 .setIssuedAt(new Date())
-
-                .setExpiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + jwtConfig.getAccessExpiration()
-                        )
-                )
-
-                .signWith(
-                        getAccessSigningKey(),
-                        SignatureAlgorithm.HS256
-                )
-
+                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getAccessExpiration()))
+                .signWith(getAccessSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     // ==============================
-    // GENERATE REFRESH TOKEN
+    // TẠO REFRESH TOKEN (dài hạn)
     // ==============================
 
     public String generateRefreshToken(UserAccount account) {
-
         return Jwts.builder()
-
                 .setSubject(account.getUsername())
-
                 .setIssuedAt(new Date())
-
-                .setExpiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + jwtConfig.getRefreshExpiration()
-                        )
-                )
-
-                .signWith(
-                        getRefreshSigningKey(),
-                        SignatureAlgorithm.HS256
-                )
-
+                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getRefreshExpiration()))
+                .signWith(getRefreshSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     // ==============================
-    // EXTRACT USERNAME
+    // TRÍCH XUẤT USERNAME
     // ==============================
 
     public String extractUsernameFromAccessToken(String token) {
+        return extractAccessClaims(token).getSubject();
+    }
 
-        return extractAccessClaims(token)
-                .getSubject();
+    public String extractUsernameFromRefreshToken(String token) {
+        return extractRefreshClaims(token).getSubject();
     }
 
     // ==============================
-    // VALIDATE ACCESS TOKEN
+    // XÁC THỰC TOKEN
     // ==============================
 
     public void validateAccessToken(String token) {
-
         try {
-
             extractAccessClaims(token);
-
         } catch (JwtException e) {
-
-            throw new AppException(
-                    "Invalid or expired access token",
-                    HttpStatus.UNAUTHORIZED
-            );
+            throw new AppException("Invalid or expired access token", HttpStatus.UNAUTHORIZED);
         }
     }
-
-    // ==============================
-    // VALIDATE REFRESH TOKEN
-    // ==============================
 
     public void validateRefreshToken(String token) {
-
         try {
-
             extractRefreshClaims(token);
-
         } catch (JwtException e) {
-
-            throw new AppException(
-                    "Invalid or expired refresh token",
-                    HttpStatus.UNAUTHORIZED
-            );
+            throw new AppException("Invalid or expired refresh token", HttpStatus.UNAUTHORIZED);
         }
     }
 
     // ==============================
-    // EXTRACT ACCESS CLAIMS
+    // LẤY CLAIMS
     // ==============================
 
     private Claims extractAccessClaims(String token) {
-
         return Jwts.parserBuilder()
-
                 .setSigningKey(getAccessSigningKey())
-
                 .build()
-
                 .parseClaimsJws(token)
-
                 .getBody();
     }
-
-    // ==============================
-    // EXTRACT REFRESH CLAIMS
-    // ==============================
 
     private Claims extractRefreshClaims(String token) {
-
         return Jwts.parserBuilder()
-
                 .setSigningKey(getRefreshSigningKey())
-
                 .build()
-
                 .parseClaimsJws(token)
-
                 .getBody();
     }
 
     // ==============================
-    // ACCESS SIGNING KEY
+    // CHUẨN BỊ KHÓA KÝ
     // ==============================
 
-    private Key getAccessSigningKey() {
-
-        return Keys.hmacShaKeyFor(
-                jwtConfig.getAccessSecret().getBytes()
-        );
+    private SecretKey getAccessSigningKey() {
+        String secret = jwtConfig.getAccessSecret();
+        validateSecretKey(secret, "Access");
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ==============================
-    // REFRESH SIGNING KEY
-    // ==============================
-
-    private Key getRefreshSigningKey() {
-
-        return Keys.hmacShaKeyFor(
-                jwtConfig.getRefreshSecret().getBytes()
-        );
+    private SecretKey getRefreshSigningKey() {
+        String secret = jwtConfig.getRefreshSecret();
+        validateSecretKey(secret, "Refresh");
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
-    public String extractUsernameFromRefreshToken(
-            String token
-    ) {
 
-        return extractRefreshClaims(token)
-                .getSubject();
+    /**
+     * Kiểm tra secret key có hợp lệ không:
+     * - Không null, không rỗng
+     * - Độ dài tối thiểu 32 bytes (256 bit) theo yêu cầu của HS256
+     * Nếu không đủ, ném exception ngay khi khởi tạo bean (giúp phát hiện sớm)
+     */
+    private void validateSecretKey(String secret, String keyType) {
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new IllegalStateException(keyType + " secret key must not be null or empty");
+        }
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException(
+                    keyType + " secret key must be at least 32 bytes long (current: " + keyBytes.length + ")"
+            );
+        }
     }
 }

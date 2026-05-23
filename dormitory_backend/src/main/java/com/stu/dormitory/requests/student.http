@@ -1,0 +1,49 @@
+
+### LOGIN SUCCESS
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "060204002557",
+  "password": "123456"
+}
+
+### TOKEN USER
+GET http://localhost:8080/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyMDQwMDI1NTciLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3OTUxODQ5OSwiZXhwIjoxNzc5NTE5Mzk5fQ.n3JDupozCutIvnannCTkBiPcycYsFpt6z2M3bhnkdr4
+
+### 3. UPDATE PROFILE (thành công)
+PUT http://localhost:8080/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyMDQwMDI1NTciLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3OTUxODg3MCwiZXhwIjoxNzc5NTE5NzcwfQ.LTABnKGNr9I-BtqhVS9YQSkrrqYocc1KILDCY0lgZ3I
+Content-Type: application/json
+
+{
+  "fullName": "Nguyễn Văn B",
+  "phone": "0912345678",
+  "email": "another@example.com"
+}
+
+### 4. GET PROFILE (sau cập nhật)
+GET http://localhost:8080/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyMDQwMDI1NTciLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3OTUxODQ5OSwiZXhwIjoxNzc5NTE5Mzk5fQ.n3JDupozCutIvnannCTkBiPcycYsFpt6z2M3bhnkdr4
+
+
+###
+# curl -X POST http://localhost:8080/api/users/me/avatar -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyMDQwMDI1NTciLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3OTUyMDI3OSwiZXhwIjoxNzc5NTIxMTc5fQ.jaapqHmiE2Rg6rgINTh3BZ1-b9fOyeS5wU9I_iDKDuw" -F "file=@C:\Users\DELL\OneDrive\Pictures\Saved Pictures\bt.jpeg"
+POST http://localhost:8080/api/users/me/avatar
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyMDQwMDI1NTciLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3OTUyMDI3OSwiZXhwIjoxNzc5NTIxMTc5fQ.jaapqHmiE2Rg6rgINTh3BZ1-b9fOyeS5wU9I_iDKDuw
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="bt.jpeg"
+
+< C:\Users\DELL\OneDrive\Pictures\Saved Pictures\bt.jpeg
+--WebAppBoundary--
+
+###
+
+
+
+
+

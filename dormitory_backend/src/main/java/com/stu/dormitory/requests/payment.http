@@ -1,0 +1,26 @@
+### PAYMENT WITHOUT TOKEN
+POST http://localhost:8080/api/payments/online
+Content-Type: application/json
+
+{
+  "billId": 1,
+  "amount": 500000,
+  "paymentMethod": "BANK_TRANSFER"
+}
+
+### USER TOKEN SUCCESS
+POST http://localhost:8080/api/payments/online
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyMDQwMDI1NTciLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3OTQzMzkyMywiZXhwIjoxNzc5NDM0ODIzfQ.9k8zan-T1bQa587iJ6PZ5yNnft1mhUGJp4qyVzDh2X8
+Content-Type: application/json
+
+{
+"billId": 1,
+"amount": 500000,
+"paymentMethod": "BANK_TRANSFER",
+"transactionCode": "TEST-TXN-001"
+}
+
+###
+GET http://localhost:8080/api/payments/test
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyMDQwMDI1NTciLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3OTQzNDMzMCwiZXhwIjoxNzc5NDM1MjMwfQ.mN2OHo-3JjYdg2NY-XlVtaRb9lGlm9U-JWT7ng4v1wE
+Content-Type: application/json

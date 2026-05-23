@@ -34,13 +34,9 @@ public class ApplicationService {
     private final ApplicationPriorityRepository applicationPriorityRepository;
     private final PriorityDocumentRepository priorityDocumentRepository;
 
-    // Inject hạ tầng
     private final PdfService pdfService;
     private final CloudinaryService cloudinaryService;
 
-    /**
-     * Lấy đợt đăng ký đang hoạt động
-     */
     private RegistrationPeriod getActivePeriod() {
         LocalDateTime now = LocalDateTime.now();
         return registrationPeriodRepository
@@ -51,15 +47,10 @@ public class ApplicationService {
                 ));
     }
 
-    /**
-     * Kiểm tra điều kiện đăng ký cho người dùng
-     */
     public CheckEligibilityResponse checkEligibility(CheckEligibilityRequest request) {
         RegistrationPeriod period = getActivePeriod();
-
         boolean eligible = eligibilityRepository
                 .existsByCccdAndRegistrationPeriod_Id(request.getCccd(), period.getId());
-
         return CheckEligibilityResponse.builder()
                 .eligible(eligible)
                 .registrationPeriodName(period.getName())
@@ -67,189 +58,78 @@ public class ApplicationService {
                 .build();
     }
 
-    /**
-     * Luồng tạo hồ sơ đầy đủ: Validate -> Save -> PDF -> Cloudinary -> Update
-     */
     @Transactional
-    public ApplicationResponse createApplication(
-            CreateApplicationRequest request
-    ) {
+    public ApplicationResponse createApplication(CreateApplicationRequest request) {
+        RegistrationPeriod period = getActivePeriod();
+        validateApplication(request, period);
 
-        // 1. Lấy đợt đăng ký hiện tại
-        RegistrationPeriod period =
-                getActivePeriod();
+        DormitoryApplication application = new DormitoryApplication();
+        application.setApplicationCode(generateApplicationCode());
+        application.setCccd(request.getCccd());
+        application.setFullName(request.getFullName());
+        application.setGender(request.getGender());
+        application.setEmail(request.getEmail());
+        application.setPhone(request.getPhone());
+        application.setStudentCode(request.getStudentCode());
+        application.setNote(request.getNote());
+        application.setRegistrationType(request.getRegistrationType());
+        application.setStatus(ApplicationStatus.PENDING);
+        application.setSubmittedAt(LocalDateTime.now());
+        application.setRegistrationPeriod(period);
 
-        // 2. Validate điều kiện đăng ký
-        validateApplication(
-                request,
-                period
-        );
+        application = applicationRepository.save(application);
 
-        // 3. Khởi tạo hồ sơ
-        DormitoryApplication application =
-                new DormitoryApplication();
-
-        application.setApplicationCode(
-                generateApplicationCode()
-        );
-
-        application.setCccd(
-                request.getCccd()
-        );
-
-        application.setFullName(
-                request.getFullName()
-        );
-
-        application.setGender(
-                request.getGender()
-        );
-
-        application.setEmail(
-                request.getEmail()
-        );
-
-        application.setPhone(
-                request.getPhone()
-        );
-
-        application.setStudentCode(
-                request.getStudentCode()
-        );
-
-        application.setNote(
-                request.getNote()
-        );
-
-        application.setRegistrationType(
-                request.getRegistrationType()
-        );
-
-        application.setStatus(
-                ApplicationStatus.PENDING
-        );
-
-        application.setSubmittedAt(
-                LocalDateTime.now()
-        );
-
-        application.setRegistrationPeriod(
-                period
-        );
-
-        // 4. Save lần đầu để có ID
-        application =
-                applicationRepository
-                        .save(application);
-
-        // 5. Xử lý priority categories
         int maxScore = 0;
-
-        if (request.getPriorityCategories() != null
-                && !request.getPriorityCategories().isEmpty()) {
-
-            for (PriorityCategory category
-                    : request.getPriorityCategories()) {
-
-                ApplicationPriority priority =
-                        new ApplicationPriority();
-
-                priority.setApplication(
-                        application
-                );
-
-                priority.setCategory(
-                        category
-                );
-
-                applicationPriorityRepository
-                        .save(priority);
-
+        if (request.getPriorityCategories() != null && !request.getPriorityCategories().isEmpty()) {
+            for (PriorityCategory category : request.getPriorityCategories()) {
+                ApplicationPriority priority = new ApplicationPriority();
+                priority.setApplication(application);
+                priority.setCategory(category);
+                applicationPriorityRepository.save(priority);
                 if (category.getScore() > maxScore) {
-
-                    maxScore =
-                            category.getScore();
+                    maxScore = category.getScore();
                 }
             }
         }
-
-        // 6. Save điểm ưu tiên cao nhất
-        application.setPriorityScore(
-                maxScore
-        );
-
-        application =
-                applicationRepository
-                        .save(application);
+        application.setPriorityScore(maxScore);
+        application = applicationRepository.save(application);
 
         File pdfFile = null;
-
         try {
-
-            // 7. Generate PDF
-            pdfFile =
-                    pdfService
-                            .generateApplicationPdf(
-                                    application
-                            );
-
-            // 8. Upload Cloudinary
-            String pdfUrl =
-                    cloudinaryService
-                            .uploadFile(
-                                    pdfFile,
-                                    "dormitory_pdfs"
-                            );
-
-            // 9. Save PDF URL
-            application.setApplicationPdfUrl(
-                    pdfUrl
-            );
-
-            application =
-                    applicationRepository
-                            .save(application);
-
+            pdfFile = pdfService.generateApplicationPdf(application);
+            String pdfUrl = cloudinaryService.uploadFile(pdfFile, "dormitory_pdfs");
+            application.setApplicationPdfUrl(pdfUrl);
+            application = applicationRepository.save(application);
         } catch (Exception e) {
-
-            log.error(
-                    "Create application failed: {}",
-                    e.getMessage()
-            );
-
-            throw new AppException(
-                    "Cannot complete application process",
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
-
+            log.error("Create application failed: {}", e.getMessage());
+            throw new AppException("Cannot complete application process", HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
-
-            // 10. Always delete temp file
-            if (pdfFile != null
-                    && pdfFile.exists()) {
-
+            if (pdfFile != null && pdfFile.exists()) {
                 pdfFile.delete();
             }
         }
-
-        // 11. Return response
         return mapToResponse(application);
     }
-    /**
-     * Upload tài liệu minh chứng sau khi đã có mã hồ sơ
-     */
+
     @Transactional
     public DocumentResponse uploadDocument(UploadDocumentRequest request) {
         DormitoryApplication application = applicationRepository
                 .findByApplicationCode(request.getApplicationCode())
                 .orElseThrow(() -> new AppException("Không tìm thấy hồ sơ đăng ký", HttpStatus.NOT_FOUND));
 
+        // Kiểm tra trạng thái hồ sơ: chỉ được upload khi còn xử lý (PENDING, UNDER_REVIEW, REVISION_REQUIRED)
+        ApplicationStatus status = application.getStatus();
+        if (status != ApplicationStatus.PENDING
+                && status != ApplicationStatus.UNDER_REVIEW
+                && status != ApplicationStatus.REVISION_REQUIRED) {
+            throw new AppException("Cannot upload document at current application status: " + status, HttpStatus.BAD_REQUEST);
+        }
+
         VerificationDocument document = new VerificationDocument();
         document.setApplication(application);
         document.setDocumentType(request.getDocumentType());
         document.setFileUrl(request.getFileUrl());
         document.setVerificationStatus(VerificationStatus.PENDING);
-
         documentRepository.save(document);
 
         return DocumentResponse.builder()
@@ -260,17 +140,35 @@ public class ApplicationService {
                 .build();
     }
 
-    // --- CÁC HÀM HỖ TRỢ (HELPERS) ---
+    @Transactional
+    public void uploadPriorityDocument(UploadPriorityDocumentRequest request) {
+        DormitoryApplication application = applicationRepository
+                .findByApplicationCode(request.getApplicationCode())
+                .orElseThrow(() -> new AppException("Application not found", HttpStatus.NOT_FOUND));
 
+        // Chỉ được upload giấy tờ ưu tiên khi hồ sơ còn xử lý
+        ApplicationStatus status = application.getStatus();
+        if (status != ApplicationStatus.PENDING
+                && status != ApplicationStatus.UNDER_REVIEW
+                && status != ApplicationStatus.REVISION_REQUIRED) {
+            throw new AppException("Cannot upload priority document at current application status: " + status, HttpStatus.BAD_REQUEST);
+        }
+
+        PriorityDocument document = new PriorityDocument();
+        document.setApplication(application);
+        document.setDocumentType(request.getDocumentType());
+        document.setFileUrl(request.getFileUrl());
+        document.setVerificationStatus(VerificationStatus.PENDING);
+        priorityDocumentRepository.save(document);
+    }
+
+    // --- HELPERS ---
     private void validateApplication(CreateApplicationRequest request, RegistrationPeriod period) {
-        // Kiểm tra whitelist
         boolean eligible = eligibilityRepository
                 .existsByCccdAndRegistrationPeriod_Id(request.getCccd(), period.getId());
         if (!eligible) {
             throw new AppException("Bạn không thuộc diện được đăng ký trong đợt này", HttpStatus.BAD_REQUEST);
         }
-
-        // Kiểm tra trùng lặp
         if (applicationRepository.existsByCccdAndRegistrationPeriod_Id(request.getCccd(), period.getId())) {
             throw new AppException("Bạn đã nộp hồ sơ cho đợt đăng ký này rồi", HttpStatus.BAD_REQUEST);
         }
@@ -297,48 +195,4 @@ public class ApplicationService {
                 .applicationPdfUrl(application.getApplicationPdfUrl())
                 .build();
     }
-
-    @Transactional
-    public void uploadPriorityDocument(
-            UploadPriorityDocumentRequest request
-    ) {
-
-        // 1. Tìm hồ sơ
-        DormitoryApplication application =
-                applicationRepository
-                        .findByApplicationCode(
-                                request.getApplicationCode()
-                        )
-                        .orElseThrow(() ->
-                                new AppException(
-                                        "Application not found",
-                                        HttpStatus.NOT_FOUND
-                                ));
-
-        // 2. Tạo document
-        PriorityDocument document =
-                new PriorityDocument();
-
-        document.setApplication(
-                application
-        );
-
-        document.setDocumentType(
-                request.getDocumentType()
-        );
-
-        document.setFileUrl(
-                request.getFileUrl()
-        );
-
-        document.setVerificationStatus(
-                VerificationStatus.PENDING
-        );
-
-        // 3. Save document
-        priorityDocumentRepository
-                .save(document);
-    }
-
-
 }

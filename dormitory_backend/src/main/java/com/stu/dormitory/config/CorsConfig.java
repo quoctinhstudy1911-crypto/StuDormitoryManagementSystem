@@ -5,16 +5,10 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * CorsConfig - Cấu hình CORS cho backend
- *
- * Cho phép frontend trên:
- * - http://localhost:5173 (Vite default)
- * - http://localhost:5174 (Vite custom)
- * - http://localhost:3000 (Next.js)
- *
- * Cho phép tất cả methods: GET, POST, PUT, DELETE, OPTIONS, PATCH
- * Cho phép tất cả headers
- * Cache CORS setting trong 3600 giây
+ * Cấu hình CORS (Cross-Origin Resource Sharing)
+ * - Hiện tại cho phép tất cả origin (dành cho môi trường phát triển)
+ * - Khi lên PRODUCTION: thay allowedOrigins("*") bằng domain thật của frontend
+ *   Ví dụ: .allowedOrigins("https://your-frontend-domain.com")
  */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
@@ -22,10 +16,10 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://localhost:5174")
+                .allowedOrigins("*") // ⚠️ PRODUCTION: cần thay bằng domain cụ thể
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
-                .allowCredentials(true)
+                .allowCredentials(false) // BẮT BUỘC false khi dùng "*"
                 .maxAge(3600);
     }
 }

@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface StudentRepository  extends JpaRepository<Student, Long> {
     // Tìm kiếm sinh viên theo CCCD
    Optional<Student> findByCccd(String cccd);
+
+    boolean existsByEmail(String email);
 }

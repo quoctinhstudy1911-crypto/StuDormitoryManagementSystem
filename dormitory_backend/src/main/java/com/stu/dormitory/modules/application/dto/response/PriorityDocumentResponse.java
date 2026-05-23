@@ -20,5 +20,5 @@ public class PriorityDocumentResponse {
 
     private VerificationStatus verificationStatus;
 
-    private String rejectReason;
+    private String reviewNote;
 }

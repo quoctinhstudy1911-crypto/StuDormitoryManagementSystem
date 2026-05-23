@@ -32,18 +32,20 @@ public interface DormitoryApplicationRepository
             String cccd,
             Long registrationPeriodId
     );
+
     boolean existsByApplicationCode(
             String applicationCode
     );
 
     /**
-     * TRUY VẤN PHÂN HẠNG (RANKING QUERY):
-     * 1. Lọc theo trạng thái hồ sơ (Ví dụ: PENDING).
-     * 2. Ưu tiên 1: PriorityScore giảm dần (Điểm cao xếp trước).
-     * 3. Ưu tiên 2: SubmittedAt tăng dần (Nộp trước xếp trước nếu bằng điểm).
+     * Ranking applications
+     * - priorityScore DESC
+     * - submittedAt ASC
      */
     List<DormitoryApplication>
     findByStatusOrderByPriorityScoreDescSubmittedAtAsc(
             ApplicationStatus status
     );
+
 }
+
